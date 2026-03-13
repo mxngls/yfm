@@ -45,6 +45,7 @@ typedef struct post {
 } Post;
 
 typedef enum {
+	TOKEN_START,
 	TOKEN_STRING = 1,
 	TOKEN_COLON,
 	TOKEN_PIPE,
@@ -360,12 +361,11 @@ int tokenizer_tokenize_list(Cursor *c) {
 int tokenizer_tokenize_line(Cursor *c) {
 	// find YAML start marker
 	if (str_starts_with(cursor_current(c), cursor_remaining(c), "---", strlen("---"))) {
-		while (indents.len > 0) {
+		while (indents.len > 1) {
 			tokenzier_dedent(c, &tokens, &indents);
 		}
-
 		if (array_push(&tokens, ((Token){
-					    .kind = TOKEN_END,
+					    .kind = TOKEN_START,
 					    .start = cursor_current(c),
 					    .len = 3,
 					    .indent = 0,
@@ -389,7 +389,7 @@ int tokenizer_tokenize_line(Cursor *c) {
 					}))) {
 			return -1;
 		};
-		cursor_skip_line(c);
+		cursor_advance(c, cursor_remaining(c));
 		return 0;
 	}
 
@@ -544,7 +544,8 @@ int main(int argc, char **argv) {
 	const char *token_kind_str[] = {
 	    [TOKEN_STRING] = "STRING",	   [TOKEN_COLON] = "COLON",	  [TOKEN_PIPE] = "PIPE",
 	    [TOKEN_LBRACKET] = "LBRACKET", [TOKEN_RBRACKET] = "RBRACKET", [TOKEN_COMMA] = "COMMA",
-	    [TOKEN_INDENT] = "INDENT",	   [TOKEN_DEDENT] = "DEDENT",	  [TOKEN_END] = "END",
+	    [TOKEN_INDENT] = "INDENT",	   [TOKEN_DEDENT] = "DEDENT",	  [TOKEN_START] = "START",
+	    [TOKEN_END] = "END",
 	};
 
 	for (size_t i = 0; i < tokens.len; i++) {
