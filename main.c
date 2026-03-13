@@ -41,6 +41,7 @@ typedef struct post {
 	char *created_at;
 	char *updated_at;
 	char *description;
+	// TODO: Add support for tags
 } Post;
 
 typedef enum {
@@ -146,9 +147,16 @@ size_t str_first_not_of(char *str, size_t str_len, char marker) {
 }
 
 size_t str_find(char *str, size_t str_len, char marker) {
-	char *found = memchr(str, marker, str_len);
-	size_t pos = found ? (size_t)(found - str) : NPOS;
-	return pos;
+	for (size_t i = 0; i < str_len; i++) {
+		if (str[i] == '\\' && i + 1 < str_len) {
+			i++;
+			continue;
+		}
+		if (str[i] == marker) {
+			return i;
+		}
+	}
+	return NPOS;
 }
 
 int tokenizer_indent(Cursor *c, TokenArray *token_arr, int64_t depth, IndentArray *indent_arr) {
