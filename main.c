@@ -497,32 +497,48 @@ int tokenizer_tokenize(Cursor *c) {
 	return 0;
 }
 
-int main() {
-	char input_file_name[] = "./test.yaml";
-
-	FILE *input_file = fopen(input_file_name, "r");
+int read_input_file(char **buf, size_t *len, char *input_file_name, FILE **input_file) {
+	*input_file = fopen(input_file_name, "r");
 	if (!input_file) {
 		fprintf(stderr, "Error opening \"%s\"\n. Exit.", input_file_name);
 		return 1;
 	}
 
-	char *buf = calloc(513, sizeof(char));
 	if (!buf) {
 		fprintf(stderr, "Error allocating memory. Exit.");
-		fclose(input_file);
 		return 1;
 	}
 
-	size_t bytes_read = fread(buf, sizeof(char), 512, input_file);
-	if (ferror(input_file)) {
+	*len = fread(*buf, sizeof(char), 512, *input_file);
+	if (ferror(*input_file)) {
 		fprintf(stderr, "Error reading \"%s\". Exit.", input_file_name);
+		return 1;
+	}
+	(*buf)[*len] = '\0';
+
+	return 0;
+}
+
+int main(int argc, char **argv) {
+	if (argc != 2) {
+		fprintf(stderr, "Error: expected exactly one input path");
+		return -1;
+	}
+	char *input_file_name = *++argv;
+	FILE *input_file = NULL;
+
+	char *buf = calloc(513, sizeof(char));
+	size_t len = 0;
+
+	if (read_input_file(&buf, &len, input_file_name, &input_file)) {
 		free(buf);
 		fclose(input_file);
-		return 1;
-	}
-	buf[bytes_read] = '\0';
+		return -1;
+	};
 
-	Cursor cursor = {.data = buf, .len = bytes_read, .pos = 0, .line = 1, .col = 1};
+	fprintf(stderr, "buf: %s\tlen: %d", buf, len);
+
+	Cursor cursor = {.data = buf, .len = len, .pos = 0, .line = 1, .col = 1};
 	tokenizer_tokenize(&cursor);
 
 	// clang-format ignore
