@@ -18,4 +18,7 @@ watch: $(OUT)
 clean:
 	rm -f $(OUT) $(OBJ)
 
-.PHONY: watch clean
+test: $(OUT)
+	@./tests/run.sh ./$(OUT)
+
+.PHONY: watch clean test

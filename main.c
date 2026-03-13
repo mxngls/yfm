@@ -536,8 +536,6 @@ int main(int argc, char **argv) {
 		return -1;
 	};
 
-	fprintf(stderr, "buf: %s\tlen: %d", buf, len);
-
 	Cursor cursor = {.data = buf, .len = len, .pos = 0, .line = 1, .col = 1};
 	tokenizer_tokenize(&cursor);
 
