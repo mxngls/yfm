@@ -129,6 +129,12 @@ char *cursor_current(Cursor *c) { return c->data + c->pos; }
 
 size_t cursor_remaining(Cursor *c) { return c->len - c->pos; }
 
+int is_separator(char *str, size_t str_len, char ch) {
+	if (str_len == 0 || str[0] != ch)
+		return 0;
+	return str_len == 1 || str[1] == ' ' || str[1] == '\n';
+}
+
 int str_starts_with(char *str, size_t str_len, char *prefix, size_t prefix_len) {
 	if (prefix_len > str_len)
 		return 0;
@@ -243,13 +249,13 @@ int tokenizer_tokenize_bare_str(Cursor *c) {
 	while (cursor_remaining(c) > 0) {
 		char ch = cursor_peek(c);
 		// clang-format off
-		if (ch == ':'
-		    || ch == '\n'
+		if (ch == '\n'
 		    || ch == '['
 		    || ch == '"'
 		    || ch == '|'
-		    || ch == '#'
-		    || ch == ' ') {
+		    || ch == ' '
+		    || is_separator(cursor_current(c), cursor_remaining(c), ':')
+		    ) {
 		    break;
 		}
 		// clang-format on
@@ -476,7 +482,7 @@ int tokenizer_tokenize_line(Cursor *c) {
 			return 0;
 		}
 
-		if (cursor_peek(c) == ':') {
+		if (is_separator(cursor_current(c), cursor_remaining(c), ':')) {
 			if (array_push(&tokens, ((Token){.kind = TOKEN_COLON,
 							 .start = cursor_current(c),
 							 .len = 1,
