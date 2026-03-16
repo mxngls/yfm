@@ -1,0 +1,17 @@
+---
+title: "Project"
+dependencies:
+  - name: "libfoo"
+    versions:
+      - "1.0"
+      - "2.0"
+  - name: "libbar"
+    versions:
+      - "3.0"
+tags:
+  - core
+  - stable
+description: |
+  A complex document with nested
+  block sequences and mixed values.
+...

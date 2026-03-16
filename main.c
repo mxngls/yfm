@@ -48,6 +48,7 @@ typedef enum {
 	TOKEN_STRING = 1,
 	TOKEN_COLON,
 	TOKEN_COMMA,
+	TOKEN_DASH,
 	TOKEN_DEDENT,
 	TOKEN_END,
 	TOKEN_INDENT,
@@ -376,6 +377,8 @@ int tokenizer_tokenize_list(Cursor *c) {
 }
 
 int tokenizer_tokenize_line(Cursor *c) {
+	char *line_start = cursor_current(c);
+
 	// find YAML start marker
 	if (str_starts_with(cursor_current(c), cursor_remaining(c), "---", strlen("---"))) {
 		while (indents.len > 1) {
@@ -476,6 +479,26 @@ int tokenizer_tokenize_line(Cursor *c) {
 			if (tokenizer_tokenize_bare_block(c, indents.items[indents.len - 1])) {
 				return -1;
 			}
+			return 0;
+		}
+
+		if (str_starts_with(cursor_current(c), cursor_remaining(c), "- ", 2)) {
+			if (array_push(&tokens, ((Token){.kind = TOKEN_DASH,
+							 .start = cursor_current(c),
+							 .len = 1,
+							 .indent = array_back(&indents)}))) {
+				return -1;
+			};
+			cursor_advance(c, 1);
+			size_t pos = str_first_not_of(cursor_current(c), cursor_remaining(c), WS);
+			if (pos == NPOS || cursor_current(c)[pos] == '\n') {
+				cursor_skip_line(c);
+				return 0;
+			}
+			cursor_advance(c, 1);
+			if (tokenizer_indent(&tokens, cursor_current(c) - line_start, &indents)) {
+				return -1;
+			};
 			continue;
 		}
 
@@ -505,6 +528,7 @@ int tokenizer_tokenize_line(Cursor *c) {
 			return -1;
 		}
 	}
+
 	return 0;
 }
 
@@ -567,6 +591,7 @@ int main(int argc, char **argv) {
 	    [TOKEN_STRING]	= "STRING",
 	    [TOKEN_COLON]	= "COLON",
 	    [TOKEN_COMMA]	= "COMMA",
+	    [TOKEN_DASH]	= "DASH",
 	    [TOKEN_DEDENT]	= "DEDENT",	  
 	    [TOKEN_END]		= "END",
 	    [TOKEN_INDENT]	= "INDENT",	   
