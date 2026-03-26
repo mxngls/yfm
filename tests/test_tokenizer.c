@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "tokenizer.h"
+#include "../src/tokenizer.h"
 
 // clang-format off
 static const char *token_kind_str[] = {
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     fclose(input_file);
 
     Cursor            cursor = {.data = buf, .len = len, .pos = 0, .line = 1, .col = 1};
-    static TokenArray tokens = {.len = 0};
+    static TokenArray tokens = {.len = 0, .cap = 0, .items = NULL};
     if (tokenizer_tokenize(&cursor, &tokens)) {
         free(buf);
         return -1;

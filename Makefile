@@ -11,22 +11,32 @@ OBJ = $(BUILD)/main.o $(BUILD)/tokenizer.o
 TEST_TOKENIZER = $(BUILD)/test_tokenizer
 TEST_TOKENIZER_OBJ = $(BUILD)/test_tokenizer.o $(BUILD)/tokenizer.o
 
+TESTS = $(TEST_TOKENIZER)
+
+all: $(OUT) $(TESTS)
+
 $(OUT): $(OBJ)
 	$(CC) $(LDFLAGS) -o $(OUT) $(OBJ)
 
 $(TEST_TOKENIZER): $(TEST_TOKENIZER_OBJ)
-	$(CC) $(LDFLAGS) -o $(TEST_TOKENIZER) $(TEST_TOKENIZER_OBJ)
+	$(CC) $(LDFLAGS) -o $@ $^
 
-$(BUILD)/tokenizer.o $(BUILD)/test_tokenizer.o: $(SRC)/tokenizer.h
+$(BUILD)/test_tokenizer.o $(BUILD)/tokenizer.o: $(SRC)/tokenizer.h
 
 $(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/%.o: tests/%.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD):
 	mkdir -p $(BUILD)
 
-test: $(TEST_TOKENIZER)
-	@./tests/run.sh ./$(TEST_TOKENIZER) tests/tokenizer
+test: $(TESTS)
+	@for bin in $(TESTS); do \
+		name=$$(basename $$bin | sed 's/^test_//'); \
+		./tests/run.sh ./$$bin tests/$$name || exit 1; \
+	done
 
 watch: $(OUT)
 	./$(OUT)
@@ -35,4 +45,4 @@ watch: $(OUT)
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: watch clean test
+.PHONY: all watch clean test
