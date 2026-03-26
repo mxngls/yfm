@@ -5,13 +5,20 @@
 
 #include "tokenizer.h"
 
-#define array_cap(arr) (sizeof((arr)->items) / sizeof((arr)->items[0]))
 #define array_push(arr, val)                                                                       \
     ({                                                                                             \
         int _ret = 0;                                                                              \
-        if ((arr)->len >= array_cap(arr)) {                                                        \
-            fprintf(stderr, "Error: array full\n");                                                \
-            _ret = -1;                                                                             \
+        if ((arr)->len >= (arr)->cap) {                                                            \
+            size_t _new_cap = (arr)->cap == 0 ? 128 : (arr)->cap * 2;                              \
+            void*  _grown = realloc((arr)->items, _new_cap * sizeof(*(arr)->items));               \
+            if (!_grown) {                                                                         \
+                fprintf(stderr, "Error: re-allocation failed\n");                                  \
+                _ret = -1;                                                                         \
+            } else {                                                                               \
+                (arr)->items = _grown;                                                             \
+                (arr)->cap = _new_cap;                                                             \
+                (arr)->items[(arr)->len++] = (val);                                                \
+            }                                                                                      \
         } else {                                                                                   \
             (arr)->items[(arr)->len++] = (val);                                                    \
         }                                                                                          \
@@ -451,19 +458,31 @@ static int tokenizer_tokenize_line(Cursor* c, TokenArray* tokens, IndentArray* i
 }
 
 int tokenizer_tokenize(Cursor* c, TokenArray* tokens) {
-    IndentArray indents = {.len = 1, .items = {0}};
+    int ret = 0;
+
+    IndentArray indents = {.len = 0, .cap = 0, .items = NULL};
+    array_push(&indents, 0);
 
     while (cursor_remaining_count(c) != 0) {
         if (tokenizer_tokenize_line(c, tokens, &indents)) {
-            return -1;
+            ret = -1;
+            goto error;
         }
     }
     while (indents.len > 1) {
         if (tokenzier_dedent(tokens, &indents)) {
-            return -1;
+            ret = -1;
+            goto error;
         };
     }
     array_push(tokens, ((Token){.kind = TOKEN_END, .start = NULL, .len = 0, .indent = 0}));
+    goto done;
 
-    return 0;
+error:
+    ret = -1;
+
+done:
+    free(indents.items);
+
+    return ret;
 }

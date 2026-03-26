@@ -6,9 +6,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define TOKEN_MAX 512
-#define INDENTS_MAX 16
-
 typedef struct cursor {
     char*  data;
     size_t len;
@@ -40,12 +37,14 @@ typedef struct token {
 
 typedef struct token_array {
     size_t len;
-    Token  items[TOKEN_MAX];
+    size_t cap;
+    Token* items;
 } TokenArray;
 
 typedef struct indent_array {
-    size_t  len;
-    int64_t items[INDENTS_MAX];
+    size_t   len;
+    size_t   cap;
+    int64_t* items;
 } IndentArray;
 
 int tokenizer_tokenize(Cursor* c, TokenArray* tokens);
