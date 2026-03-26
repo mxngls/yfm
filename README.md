@@ -63,17 +63,39 @@ Spec references:
 
 ### Block Mappings
 
-A document is a flat sequence of key-value pairs. Keys are plain
-(unquoted) identifiers followed by `: ` and a value. Nested mappings
-are not supported.
+Key-value pairs where keys are plain (unquoted) identifiers followed
+by `: ` and a value. Nested mappings are supported through
+indentation.
 
 ```yaml
 title: "My Application"
 created_at: "2024-03-15 10:00:00"
+site:
+  url: http://example.com
+  name: "Example"
 ```
 
 Spec reference:
 [§8.2.2](https://yaml.org/spec/1.2.2/#822-block-mappings)
+
+### Block Sequences
+
+List items use `- ` (dash followed by a space). Each item can contain
+a value or a group of key-value pairs at an indented level.
+
+```yaml
+authors:
+  - name: "Alice"
+    email: "alice@example.com"
+  - name: "Bob"
+    email: "bob@example.com"
+```
+
+The dash must be followed by a space and content on the same line.
+Nested sequences are not supported.
+
+Spec reference:
+[§8.2.1](https://yaml.org/spec/1.2.2/#821-block-sequences)
 
 ### Double-Quoted Scalars
 
@@ -165,10 +187,15 @@ Spec reference:
 ```yaml
 ---
 # Post metadata
-title: "My Application"
+title: "My Site"
 created_at: "2024-03-15 10:00:00"
 updated_at: "2024-03-15 14:30:00"
 tags: ["web", "static-site"]
+authors:
+  - name: "Alice"
+    email: "alice@example.com"
+  - name: "Bob"
+    email: "bob@example.com"
 description: |
   This is a sample document demonstrating
   all supported features.
