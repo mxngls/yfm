@@ -10,10 +10,12 @@ int parser_parse_element(TokenArray* token_arr, size_t* pos, TayNode* out) {
     TayToken next_curr_token = token_arr->items[*pos + 1];
 
     if (curr_token.kind == TOKEN_INDENT) {
+        // handle indent
         (*pos)++;
-        int err = parser_parse_element(token_arr, pos, out);
-        if (err)
-            return err;
+        if (parser_parse_element(token_arr, pos, out)) {
+            return -1;
+        }
+        // handle dedent
         (*pos)++;
         return 0;
     }
@@ -27,8 +29,6 @@ int parser_parse_element(TokenArray* token_arr, size_t* pos, TayNode* out) {
         return parser_parse_map(token_arr, pos, out);
     }
 
-    (*pos)++;
-
     return parser_parse_flow_element(token_arr, pos, out);
 }
 
@@ -36,8 +36,11 @@ int parser_parse_flow_element(TokenArray* token_arr, size_t* pos, TayNode* out) 
     TayToken curr_token = token_arr->items[*pos];
 
     if (curr_token.kind == TOKEN_LBRACKET) {
+        // handle opening bracket
         (*pos)++;
         return parser_parse_flow_list(token_arr, pos, out);
+        // handle closing bracket
+        (*pos)++;
     }
 
     if (curr_token.kind != TOKEN_STRING) {
@@ -79,6 +82,7 @@ int parser_parse_flow_list(TokenArray* token_arr, size_t* pos, TayNode* out) {
             fprintf(stderr, "Error: comma expected\n");
             return -1;
         }
+        // adance past comma token
         (*pos)++;
     }
 
@@ -86,8 +90,6 @@ int parser_parse_flow_list(TokenArray* token_arr, size_t* pos, TayNode* out) {
         fprintf(stderr, "Error: unterminated flow list\n");
         return -1;
     }
-
-    (*pos)++;
 
     return 0;
 }
@@ -107,6 +109,7 @@ int parser_parse_map(TokenArray* token_arr, size_t* pos, TayNode* out) {
             return -1;
         }
 
+        // advance past colon token and indent
         (*pos) += 2;
 
         array_push(&out->list, (TayNode){0});
@@ -114,8 +117,6 @@ int parser_parse_map(TokenArray* token_arr, size_t* pos, TayNode* out) {
             return -1;
         }
     }
-
-    (*pos)++;
 
     return -1;
 };
@@ -133,15 +134,13 @@ int parser_parse_list(TokenArray* token_arr, size_t* pos, TayNode* out) {
             fprintf(stderr, "Error: expected list element\n");
             return -1;
         }
-
+        // adance past dash token
         (*pos)++;
 
         array_push(&out->list, (TayNode){0});
         if (parser_parse_element(token_arr, pos, &out->list.items[out->list.len - 1])) {
             return -1;
         }
-
-        (*pos)++;
 
         return -1;
     };
