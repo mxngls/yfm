@@ -170,8 +170,6 @@ int parser_parse_list(TokenArray* token_arr, size_t* pos, TayNode* out) {
         if (parser_parse_element(token_arr, pos, &out->list.items[out->list.len - 1])) {
             return -1;
         }
-
-        return -1;
     };
 
     return 0;
