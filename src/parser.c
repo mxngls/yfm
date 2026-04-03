@@ -152,15 +152,14 @@ int parser_parse_map(TokenArray* token_arr, size_t* pos, TayNode* out) {
 };
 
 int parser_parse_list(TokenArray* token_arr, size_t* pos, TayNode* out) {
-    TayToken curr_token = token_arr->items[*pos];
-
     out->kind = TAY_LIST;
     out->list.items = NULL;
     out->list.cap = 0;
     out->list.len = 0;
 
-    while (curr_token.kind != TOKEN_END && curr_token.kind != TOKEN_DEDENT) {
-        if (curr_token.kind != TOKEN_DASH) {
+    while (token_arr->items[*pos].kind != TOKEN_END &&
+           token_arr->items[*pos].kind != TOKEN_DEDENT) {
+        if (token_arr->items[*pos].kind != TOKEN_DASH) {
             fprintf(stderr, "Error: expected list element\n");
             return -1;
         }
