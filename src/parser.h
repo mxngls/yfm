@@ -21,6 +21,7 @@ typedef struct tay_string {
 
 typedef struct tay_node {
     TayNodeKind kind;
+    TayString   key;
     size_t      len;
     union {
         TayString string;

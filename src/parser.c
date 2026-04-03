@@ -35,15 +35,14 @@ int parser_parse_element(TokenArray* token_arr, size_t* pos, TayNode* out) {
             fprintf(stderr, "Error: string expected\n");
             return -1;
         }
-        *out = ((TayNode){
-            .kind = TAY_STRING,
-            .string =
-                (TayString){
+        out->kind = TAY_STRING;
+        out->string = (TayString){
                     .str = curr_token.start,
                     .len = curr_token.len,
-                },
-        });
+        };
+
         (*pos)++;
+
         curr_token = token_arr->items[*pos];
         return 0;
     }
@@ -60,11 +59,9 @@ int parser_parse_flow_element(TokenArray* token_arr, size_t* pos, TayNode* out) 
     TayToken curr_token = token_arr->items[*pos];
 
     if (curr_token.kind == TOKEN_LBRACKET) {
-        // handle opening bracket
+        // handle opening bracket (closing bracket handled inside)
         (*pos)++;
         return parser_parse_flow_list(token_arr, pos, out);
-        // handle closing bracket
-        (*pos)++;
     }
 
     if (curr_token.kind != TOKEN_STRING) {
@@ -72,14 +69,11 @@ int parser_parse_flow_element(TokenArray* token_arr, size_t* pos, TayNode* out) 
         return -1;
     }
 
-    *out = ((TayNode){
-        .kind = TAY_STRING,
-        .string =
-            (TayString){
+    out->kind = TAY_STRING;
+    out->string = (TayString){
                 .str = curr_token.start,
                 .len = curr_token.len,
-            },
-    });
+    };
 
     (*pos)++;
 
@@ -134,14 +128,12 @@ int parser_parse_map(TokenArray* token_arr, size_t* pos, TayNode* out) {
             return -1;
         }
 
-        array_push(&out->map, ((TayNode){
-                                  .kind = TAY_STRING,
-                                  .string =
-                                      (TayString){
+        // add key
+        array_push(&out->map, (TayNode){0});
+        out->map.items[out->map.len - 1].key = (TayString){
                                           .str = token_arr->items[*pos].start,
                                           .len = token_arr->items[*pos].len,
-                                      },
-                              }));
+        };
 
         // advance past colon token and indent
         (*pos) += 2;
